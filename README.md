@@ -1,5 +1,7 @@
 # RoadGain
 
+[![Android CI](https://github.com/sezerugurlu1-dotcom/speed-volume-booster/actions/workflows/android-ci.yml/badge.svg)](https://github.com/sezerugurlu1-dotcom/speed-volume-booster/actions/workflows/android-ci.yml)
+
 RoadGain is a clean-room Android volume booster with manual and speed-adaptive modes.
 It processes speed on-device, stores no coordinates, requests no Internet permission, and
 keeps an immediate Stop action in its foreground-service notification.
