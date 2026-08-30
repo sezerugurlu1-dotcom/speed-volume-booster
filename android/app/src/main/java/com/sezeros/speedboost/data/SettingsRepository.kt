@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sezeros.speedboost.model.AppConfig
+import com.sezeros.speedboost.model.AdaptiveTuningLimits
 import com.sezeros.speedboost.model.BoostMode
 import com.sezeros.speedboost.model.CurvePoint
 import com.sezeros.speedboost.model.OutputRoute
@@ -68,7 +69,10 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
-    suspend fun setSmoothing(alpha: Float) = edit(Keys.alpha, alpha.coerceIn(0.15f, 0.45f))
+    suspend fun setSmoothing(alpha: Float) = edit(Keys.alpha, AdaptiveTuningLimits.smoothingAlpha(alpha))
+    suspend fun setGpsHoldSeconds(seconds: Int) = edit(Keys.hold, AdaptiveTuningLimits.gpsHoldSeconds(seconds))
+    suspend fun setFallbackSeconds(seconds: Int) = edit(Keys.fallback, AdaptiveTuningLimits.fallbackSeconds(seconds))
+    suspend fun setRampDbPerSecond(rate: Float) = edit(Keys.ramp, AdaptiveTuningLimits.rampDbPerSecond(rate))
     suspend fun setMonotonic(enabled: Boolean) = edit(Keys.monotonic, enabled)
     suspend fun setUseMph(enabled: Boolean) = edit(Keys.useMph, enabled)
     suspend fun setHighGainAcknowledged(enabled: Boolean) = edit(Keys.highGainAcknowledged, enabled)
@@ -86,10 +90,10 @@ class SettingsRepository(private val context: Context) {
             wiredUsb = RouteProfile(prefs[Keys.wiredBase] ?: defaults.wiredUsb.baseDb, prefs[Keys.wiredCap] ?: defaults.wiredUsb.capDb),
             bluetooth = RouteProfile(prefs[Keys.bluetoothBase] ?: defaults.bluetooth.baseDb, prefs[Keys.bluetoothCap] ?: defaults.bluetooth.capDb),
             unknown = RouteProfile(prefs[Keys.unknownBase] ?: defaults.unknown.baseDb, prefs[Keys.unknownCap] ?: defaults.unknown.capDb),
-            smoothingAlpha = prefs[Keys.alpha] ?: defaults.smoothingAlpha,
-            gpsHoldSeconds = prefs[Keys.hold] ?: defaults.gpsHoldSeconds,
-            fallbackSeconds = prefs[Keys.fallback] ?: defaults.fallbackSeconds,
-            rampDbPerSecond = prefs[Keys.ramp] ?: defaults.rampDbPerSecond,
+            smoothingAlpha = AdaptiveTuningLimits.smoothingAlpha(prefs[Keys.alpha] ?: defaults.smoothingAlpha),
+            gpsHoldSeconds = AdaptiveTuningLimits.gpsHoldSeconds(prefs[Keys.hold] ?: defaults.gpsHoldSeconds),
+            fallbackSeconds = AdaptiveTuningLimits.fallbackSeconds(prefs[Keys.fallback] ?: defaults.fallbackSeconds),
+            rampDbPerSecond = AdaptiveTuningLimits.rampDbPerSecond(prefs[Keys.ramp] ?: defaults.rampDbPerSecond),
             monotonicCurve = prefs[Keys.monotonic] ?: defaults.monotonicCurve,
             useMph = prefs[Keys.useMph] ?: defaults.useMph,
             highGainAcknowledged = prefs[Keys.highGainAcknowledged] ?: defaults.highGainAcknowledged,

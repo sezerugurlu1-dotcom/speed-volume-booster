@@ -1,6 +1,7 @@
 package com.sezeros.speedboost.engine
 
 import com.sezeros.speedboost.model.AppConfig
+import com.sezeros.speedboost.model.AdaptiveTuningLimits
 import kotlin.math.abs
 
 data class SpeedReading(
@@ -39,7 +40,7 @@ class AdaptiveGainController {
             return SpeedResult(false, reading.speedKmh, filteredSpeed, invalidReason)
         }
 
-        val alpha = config.smoothingAlpha.coerceIn(0.15f, 0.45f)
+        val alpha = AdaptiveTuningLimits.smoothingAlpha(config.smoothingAlpha)
         filteredSpeed = filteredSpeed?.let { alpha * reading.speedKmh + (1f - alpha) * it } ?: reading.speedKmh
         lastRawSpeed = reading.speedKmh
         lastSampleAtMs = nowMs
@@ -51,16 +52,18 @@ class AdaptiveGainController {
     fun addedBoostDb(nowMs: Long, config: AppConfig): Float {
         val validAt = lastValidAtMs ?: return 0f
         val sinceValidMs = (nowMs - validAt).coerceAtLeast(0)
-        val holdMs = config.gpsHoldSeconds * 1_000L
+        val holdMs = AdaptiveTuningLimits.gpsHoldSeconds(config.gpsHoldSeconds) * 1_000L
         if (sinceValidMs <= holdMs) return lastAddedDb
-        val fallbackMs = config.fallbackSeconds.coerceAtLeast(1) * 1_000L
+        val fallbackMs = AdaptiveTuningLimits.fallbackSeconds(config.fallbackSeconds) * 1_000L
         val fractionLeft = (1f - (sinceValidMs - holdMs).toFloat() / fallbackMs).coerceIn(0f, 1f)
         return lastAddedDb * fractionLeft
     }
 
     fun filteredSpeedKmh(): Float? = filteredSpeed
     fun hasRecentFix(nowMs: Long, config: AppConfig): Boolean =
-        lastValidAtMs?.let { nowMs - it <= config.gpsHoldSeconds * 1_000L } == true
+        lastValidAtMs?.let {
+            nowMs - it <= AdaptiveTuningLimits.gpsHoldSeconds(config.gpsHoldSeconds) * 1_000L
+        } == true
 
     fun reset() {
         filteredSpeed = null

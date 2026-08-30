@@ -1,7 +1,7 @@
 param(
     [ValidateSet('setup', 'manual', 'adaptive', 'stopped')]
     [string]$Phase = 'setup',
-    [string]$ApkPath = (Join-Path $PSScriptRoot '..\releases\RoadGain-v1.0.3-debug.apk'),
+    [string]$ApkPath = (Join-Path $PSScriptRoot '..\releases\RoadGain-v1.0.4-debug.apk'),
     [string]$ResultsRoot = (Join-Path $PSScriptRoot '..\device-test-results')
 )
 

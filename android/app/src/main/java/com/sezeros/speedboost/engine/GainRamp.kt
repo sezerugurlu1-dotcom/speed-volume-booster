@@ -1,6 +1,7 @@
 package com.sezeros.speedboost.engine
 
 import com.sezeros.speedboost.model.SafetyLimits
+import com.sezeros.speedboost.model.AdaptiveTuningLimits
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -20,7 +21,7 @@ object GainRamp {
         val delta = target - current
         if (forceImmediateReduction && delta < 0f) return target
         if (abs(delta) < hysteresisDb.coerceAtLeast(0f)) return current
-        val maxStep = rateDbPerSecond.coerceIn(0.1f, 3f) * elapsedSeconds.coerceAtLeast(0f)
+        val maxStep = AdaptiveTuningLimits.rampDbPerSecond(rateDbPerSecond) * elapsedSeconds.coerceAtLeast(0f)
         return (current + if (abs(delta) <= maxStep) delta else maxStep * delta.sign).coerceIn(0f, cap)
     }
 }

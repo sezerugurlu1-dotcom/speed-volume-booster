@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,12 +50,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sezeros.speedboost.data.SettingsRepository
+import com.sezeros.speedboost.model.AdaptiveTuningLimits
 import com.sezeros.speedboost.model.AppConfig
 import com.sezeros.speedboost.model.BoostMode
 import com.sezeros.speedboost.model.CurvePoint
@@ -236,16 +244,38 @@ private fun RoadGainScreen(settings: SettingsRepository) {
                     scope.launch { settings.setUseMph(it) }
                 }
             }
+            item { SectionTitle("Adaptive response", "Smoothing, GPS-loss behavior, and gain ramp") }
             item {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Speed smoothing: ${"%.2f".format(config.smoothingAlpha)}", fontWeight = FontWeight.Bold)
-                        Slider(
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        SettingSlider(
+                            title = "Speed smoothing",
+                            valueLabel = "%.2f".format(config.smoothingAlpha),
                             value = config.smoothingAlpha,
-                            onValueChange = { scope.launch { settings.setSmoothing(it) } },
-                            valueRange = 0.15f..0.45f,
-                        )
+                            valueRange = AdaptiveTuningLimits.MIN_SMOOTHING_ALPHA..AdaptiveTuningLimits.MAX_SMOOTHING_ALPHA,
+                        ) { scope.launch { settings.setSmoothing(it) } }
                         Text("Lower is steadier; higher reacts faster.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        SettingSlider(
+                            title = "GPS hold",
+                            valueLabel = "${config.gpsHoldSeconds} s",
+                            value = config.gpsHoldSeconds.toFloat(),
+                            valueRange = AdaptiveTuningLimits.MIN_GPS_HOLD_SECONDS.toFloat()..AdaptiveTuningLimits.MAX_GPS_HOLD_SECONDS.toFloat(),
+                            steps = 5,
+                        ) { scope.launch { settings.setGpsHoldSeconds(it.roundToInt()) } }
+                        SettingSlider(
+                            title = "Return to base",
+                            valueLabel = "${config.fallbackSeconds} s",
+                            value = config.fallbackSeconds.toFloat(),
+                            valueRange = AdaptiveTuningLimits.MIN_FALLBACK_SECONDS.toFloat()..AdaptiveTuningLimits.MAX_FALLBACK_SECONDS.toFloat(),
+                            steps = 13,
+                        ) { scope.launch { settings.setFallbackSeconds(it.roundToInt()) } }
+                        SettingSlider(
+                            title = "Gain ramp",
+                            valueLabel = "%.1f dB/s".format(config.rampDbPerSecond),
+                            value = config.rampDbPerSecond,
+                            valueRange = AdaptiveTuningLimits.MIN_RAMP_DB_PER_SECOND..AdaptiveTuningLimits.MAX_RAMP_DB_PER_SECOND,
+                            steps = 28,
+                        ) { scope.launch { settings.setRampDbPerSecond(it) } }
                     }
                 }
             }
@@ -344,7 +374,16 @@ private fun SafetyUnlock(unlocked: Boolean, onUnlock: () -> Unit) {
     Box(
         Modifier.fillMaxWidth().background(
             if (unlocked) Color(0xFFE4F1EA) else Color(0xFFFFE6DD), RoundedCornerShape(12.dp)
-        ).pointerInput(unlocked) {
+        ).semantics {
+            role = Role.Button
+            stateDescription = if (unlocked) "High gain unlocked" else "High gain locked"
+            if (!unlocked) {
+                onLongClick("Unlock gain up to 20 decibels") {
+                    onUnlock()
+                    true
+                }
+            }
+        }.focusable().pointerInput(unlocked) {
             if (!unlocked) detectTapGestures(onLongPress = { onUnlock() })
         }.padding(14.dp)
     ) {
@@ -364,6 +403,27 @@ private fun SettingSwitch(title: String, detail: String, checked: Boolean, onChe
             Text(detail, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         }
         Switch(checked = checked, onCheckedChange = onChecked)
+    }
+}
+
+@Composable
+private fun SettingSlider(
+    title: String,
+    valueLabel: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int = 0,
+    onValueChange: (Float) -> Unit,
+) {
+    Column {
+        Text("$title: $valueLabel", fontWeight = FontWeight.Bold)
+        Slider(
+            modifier = Modifier.semantics { contentDescription = title },
+            value = value.coerceIn(valueRange.start, valueRange.endInclusive),
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            steps = steps,
+        )
     }
 }
 
