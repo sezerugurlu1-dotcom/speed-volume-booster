@@ -6,14 +6,14 @@ it is not evidence of audible gain on physical hardware.
 | Target | Route / condition | Status | Required evidence |
 | --- | --- | --- | --- |
 | Android SDK 26–36 | Package and API compatibility | Build verified | Physical install on oldest/newest available device |
-| Any device | Manual foreground operation, screen off | Not device-tested | 15-minute playback with screen off |
-| Any device | Stop resets gain and releases effect | Unit/static verified; device pending | Start/stop playback and inspect audio state |
+| Xiaomi 22081212UG, Android 15 | Manual foreground operation, screen off | Passed on 1.0.4: foreground service and active YouTube media remained present throughout the observed screen-off/Doze run; Sezer accepted the run as valid | Repeat on additional launch devices |
+| Xiaomi 22081212UG, Android 15 | Stop resets gain and releases effect | Passed on 1.0.4 in Manual and Adaptive modes: notification and foreground service removed; active GPS request and Loudness Enhancer client absent after Stop | Repeat on additional devices |
 | Xiaomi 22081212UG, Android 15 | Phone speaker / `LoudnessEnhancer(0)` | Audible increase confirmed by Sezer through +8 dB; session 0 enabled/active with control; 1.0.2 installed and +20 dB unlock persisted through force-stop/relaunch | Document clipping threshold separately; do not begin at full volume |
 | Wired 3.5 mm | Global effect | Not device-tested | A/B level check and route-cap switch |
 | USB-C audio | Global effect | Not device-tested | A/B level check and unplug/replug |
 | Bluetooth A2DP | Global effect | Not device-tested | Two headset/helmet models |
 | BLE Audio | Global effect | Not device-tested | BLE-capable Android 13+ device |
-| GPS adaptive | Stable speed response | Synthetic city trace passed | Road or controlled GNSS trace test |
+| Xiaomi 22081212UG, Android 15 | GPS adaptive / stable speed response | Passed on 1.0.4 during a real motorcycle ride; Sezer confirmed that speed-adaptive behavior worked correctly | Repeat on additional devices and document a controlled threshold trace |
 | GPS loss | Hold then return to base | Unit test passed | Tunnel/permission-revoke test |
 | Route switch | Immediate lower-cap clamp | Unit test passed | Live speaker/headset/Bluetooth switching |
 | Calls | Immediate gain cutout | Unit test passed | Incoming/outgoing call test |
