@@ -21,7 +21,7 @@ it is not evidence of audible gain on physical hardware.
 
 ## Go/no-go gate
 
-Product claims for speaker, wired/USB, or Bluetooth remain blocked until repeatable audible
-gain is measured without crashes or persistent audio-state corruption on the intended launch
-devices. Calls and protected/offloaded streams must be documented as unsupported when they
-bypass session 0.
+The 1.0.4 test APK is accepted for the validated Xiaomi speaker and Crown Micro C20 A2DP
+paths. No support claim is made for wired, USB-C, BLE Audio, calls, protected/offloaded
+streams, untested OEMs, or battery impact. Sezer waived those additional measurements as
+1.0.4 release blockers; they remain follow-up evidence rather than silently assumed passes.
