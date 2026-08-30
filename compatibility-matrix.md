@@ -11,11 +11,11 @@ it is not evidence of audible gain on physical hardware.
 | Xiaomi 22081212UG, Android 15 | Phone speaker / `LoudnessEnhancer(0)` | Audible increase confirmed by Sezer through +8 dB; session 0 enabled/active with control; 1.0.2 installed and +20 dB unlock persisted through force-stop/relaunch | Document clipping threshold separately; do not begin at full volume |
 | Wired 3.5 mm | Global effect | Not device-tested | A/B level check and route-cap switch |
 | USB-C audio | Global effect | Not device-tested | A/B level check and unplug/replug |
-| Bluetooth A2DP | Global effect | Not device-tested | Two headset/helmet models |
+| Xiaomi 22081212UG, Android 15 + Crown Micro C20 | Bluetooth A2DP global effect | Passed on 1.0.4; Sezer completed the route test and confirmed that Crown audio/boost worked | Test a second headset or helmet model |
 | BLE Audio | Global effect | Not device-tested | BLE-capable Android 13+ device |
 | Xiaomi 22081212UG, Android 15 | GPS adaptive / stable speed response | Passed on 1.0.4 during a real motorcycle ride; Sezer confirmed that speed-adaptive behavior worked correctly | Repeat on additional devices and document a controlled threshold trace |
 | GPS loss | Hold then return to base | Unit test passed | Tunnel/permission-revoke test |
-| Route switch | Immediate lower-cap clamp | Unit test passed | Live speaker/headset/Bluetooth switching |
+| Xiaomi 22081212UG, Android 15 + Crown Micro C20 | Speaker/Bluetooth route switch | Passed functionally on 1.0.4 per Sezer; automatic route classification and immediate lower-cap clamp also have unit coverage, but the live transition trace was not captured | Capture timestamped cap transition on another accessory |
 | Calls | Immediate gain cutout | Unit test passed | Incoming/outgoing call test |
 | Battery | 1 Hz tracking overhead | Not measured | 60-minute baseline vs adaptive-mode run |
 
