@@ -58,6 +58,7 @@ class AdaptiveBoostService : Service() {
     private var locationActive = false
     private var lastLocationStatus = "Inactive"
     private var lastNotificationUpdateMs = 0L
+    private var lastRouteRefreshMs = 0L
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -152,6 +153,10 @@ class AdaptiveBoostService : Service() {
     }
 
     private fun updateGain(nowMs: Long) {
+        if (nowMs - lastRouteRefreshMs >= 1_000L) {
+            lastRouteRefreshMs = nowMs
+            routeMonitor.refresh()
+        }
         val profile = config.profileFor(route)
         val communication = routeMonitor.isCommunicationMode()
         val speedAdded = if (mode == BoostMode.ADAPTIVE) speedController.addedBoostDb(nowMs, config) else 0f

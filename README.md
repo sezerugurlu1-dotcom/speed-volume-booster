@@ -37,11 +37,11 @@ an informational warning because that AGP release was formally tested through co
 ## Install
 
 Download the debug-signed test APK from the
-[v1.0.2 release](https://github.com/sezerugurlu1-dotcom/speed-volume-booster/releases/tag/v1.0.2),
+[v1.0.3 release](https://github.com/sezerugurlu1-dotcom/speed-volume-booster/releases/tag/v1.0.3),
 then install it:
 
 ```powershell
-adb install -r .\releases\RoadGain-v1.0.2-debug.apk
+adb install -r .\releases\RoadGain-v1.0.3-debug.apk
 ```
 
 Do not treat an “engine active” status as proof that every stream or Bluetooth route is

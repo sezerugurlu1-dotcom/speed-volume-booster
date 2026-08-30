@@ -1,6 +1,7 @@
 package com.sezeros.speedboost.service
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -14,6 +15,10 @@ class OutputRouteMonitor(
     private val onRouteChanged: (OutputRoute) -> Unit,
 ) {
     private val audioManager = context.getSystemService(AudioManager::class.java)
+    private val mediaAttributes = AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .build()
     private var current = OutputRoute.UNKNOWN
     private val callback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) = refresh()
@@ -29,13 +34,18 @@ class OutputRouteMonitor(
 
     fun isCommunicationMode(): Boolean = audioManager.mode != AudioManager.MODE_NORMAL
 
-    private fun refresh() {
-        val types = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).map { it.type }.toSet()
-        val detected = when {
-            types.any { it in bluetoothTypes } -> OutputRoute.BLUETOOTH
-            types.any { it in wiredTypes } -> OutputRoute.WIRED_USB
-            AudioDeviceInfo.TYPE_BUILTIN_SPEAKER in types -> OutputRoute.SPEAKER
-            else -> OutputRoute.UNKNOWN
+    fun refresh() {
+        val detected = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val routedTypes = runCatching {
+                audioManager.getAudioDevicesForAttributes(mediaAttributes).map { it.type }
+            }.getOrDefault(emptyList())
+            if (routedTypes.isNotEmpty()) {
+                OutputRouteClassifier.fromRoutedTypes(routedTypes)
+            } else {
+                legacyRoute()
+            }
+        } else {
+            legacyRoute()
         }
         if (detected != current) {
             current = detected
@@ -43,24 +53,10 @@ class OutputRouteMonitor(
         }
     }
 
-    companion object {
-        private val bluetoothTypes = buildSet {
-            add(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)
-            add(AudioDeviceInfo.TYPE_BLUETOOTH_SCO)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) add(AudioDeviceInfo.TYPE_HEARING_AID)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                add(AudioDeviceInfo.TYPE_BLE_HEADSET)
-                add(AudioDeviceInfo.TYPE_BLE_SPEAKER)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add(AudioDeviceInfo.TYPE_BLE_BROADCAST)
-        }
-        private val wiredTypes = setOf(
-            AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
-            AudioDeviceInfo.TYPE_WIRED_HEADSET,
-            AudioDeviceInfo.TYPE_USB_DEVICE,
-            AudioDeviceInfo.TYPE_USB_HEADSET,
-            AudioDeviceInfo.TYPE_LINE_ANALOG,
-            AudioDeviceInfo.TYPE_LINE_DIGITAL,
-        )
-    }
+    @Suppress("DEPRECATION")
+    private fun legacyRoute(): OutputRoute = OutputRouteClassifier.fromLegacyState(
+        connectedTypes = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).map { it.type },
+        bluetoothActive = audioManager.isBluetoothA2dpOn || audioManager.isBluetoothScoOn,
+        wiredActive = audioManager.isWiredHeadsetOn,
+    )
 }
